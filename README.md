@@ -1,6 +1,7 @@
 # Hermes
   
 This is a hotswap library.
+Still in rapid development, comming soon.
 
 ## Support:  
 	[1] java hotswap.  

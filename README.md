@@ -4,8 +4,8 @@
 [![maven-central](https://img.shields.io/badge/maven-0.0.3-green.svg)](http://search.maven.org/#search%7Cga%7C1%7Chera)
 [![apache-license](https://img.shields.io/badge/license-Apache--2.0-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)  
 
-This is a hotswap library.
-Still in rapid development, comming soon.
+This is a hotswap library.  
+Still in rapid development, welcome to join us.
 
 ## Support:  
 	[1] java hotswap.  

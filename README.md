@@ -1,5 +1,9 @@
 # Hermes
-  
+[![travis-ci](https://www.travis-ci.org/thegenius/hermes.svg?branch=master)](https://travis-ci.org/thegenius/hermes)
+[![codecov](https://codecov.io/gh/thegenius/hermes/branch/master/graph/badge.svg)](https://codecov.io/gh/thegenius/hermes)
+[![maven-central](https://img.shields.io/badge/maven-0.0.2-green.svg)](http://search.maven.org/#search%7Cga%7C1%7Chera)
+[![apache-license](https://img.shields.io/badge/license-Apache--2.0-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)  
+
 This is a hotswap library.
 Still in rapid development, comming soon.
 

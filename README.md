@@ -78,7 +78,7 @@ And now you can use your favorite editor to modify JavaFoo.java KotlinFoo.kt and
 Then you will see the hotswap magic.
 
 ## QUICK START
-Now you can use maven to integrate hera with your own project:
+Now you can use maven to integrate hermes with your own project:
 
 ```
 <dependency>

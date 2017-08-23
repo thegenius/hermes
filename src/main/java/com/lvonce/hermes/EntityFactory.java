@@ -12,8 +12,8 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.WeakHashMap;
-import groovy.lang.GroovyCodeSource;
-import groovy.lang.GroovyClassLoader;
+//import groovy.lang.GroovyCodeSource;
+//import groovy.lang.GroovyClassLoader;
 
 import java.lang.SecurityException;
 import java.lang.NoSuchMethodException;
@@ -27,15 +27,13 @@ import java.lang.reflect.Proxy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import groovy.lang.GroovyCodeSource;
-import groovy.lang.GroovyClassLoader;
 
 public class EntityFactory implements FileWatcherHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(EntityFactory.class);
 
-	private static final GroovyClassLoader groovyClassLoader 
-		= new GroovyClassLoader(EntityFactory.class.getClassLoader());	
+	//private static final GroovyClassLoader groovyClassLoader 
+	//	= new GroovyClassLoader(EntityFactory.class.getClassLoader());	
 
 	private static final Map<String, ClassManager<?>> classManagerMap
 		= new LinkedHashMap<String, ClassManager<?>>();
@@ -54,9 +52,9 @@ public class EntityFactory implements FileWatcherHandler {
 		return instance;
 	}
 	
-	public static GroovyClassLoader getGroovyClassLoader() {
-		return groovyClassLoader;
-	}
+	//public static GroovyClassLoader getGroovyClassLoader() {
+	//	return groovyClassLoader;
+	//}
 	
 	private static void copyFile(File source, File dest) {    
         FileChannel inputChannel = null;    

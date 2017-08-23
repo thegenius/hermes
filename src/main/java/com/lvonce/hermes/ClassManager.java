@@ -10,8 +10,8 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.WeakHashMap;
-import groovy.lang.GroovyCodeSource;
-import groovy.lang.GroovyClassLoader;
+//import groovy.lang.GroovyCodeSource;
+//import groovy.lang.GroovyClassLoader;
 
 import java.lang.SecurityException;
 import java.lang.NoSuchMethodException;
@@ -31,6 +31,8 @@ public class ClassManager<T> {
 	private static Logger logger = LoggerFactory.getLogger(ClassManager.class);
 	private static final String hotswapBase = ".reload/";
 	private static final String srcBase = "src/main/";
+	private static final String testBase = "src/test/";
+	private static final String targetBase = "target/";
 
 	private final String classFilePath;
 	private final Class<T> interfaceType;
@@ -66,18 +68,18 @@ public class ClassManager<T> {
 		}
 	}
 
-	private T createInstance(Object ...args) {
+	public static <E> E createInstance(Class<E> classType, Object ...args) {
 		try {
-			T obj = null;
-			if (this.implementClass != null) {
+			E obj = null;
+			if (classType != null) {
 				if (args == null || args.length == 0) {	
-					obj = (T)this.implementClass.newInstance();
+					obj = (E)classType.newInstance();
 				} else {
 					Class[] paramTypes = new Class[args.length];	
 					for (int i=0; i<args.length; ++i) {
 						paramTypes[i] = args[i].getClass();
 					}
-					Constructor<T> constructor = (Constructor<T>)this.implementClass.getDeclaredConstructor(paramTypes);
+					Constructor<E> constructor = (Constructor<E>)classType.getDeclaredConstructor(paramTypes);
 					obj = constructor.newInstance(args);
 				}
 			}
@@ -90,6 +92,10 @@ public class ClassManager<T> {
     		e.printStackTrace();
     		return null;
 		}
+	}
+
+	private T createInstance(Object ...args) {
+		return createInstance(this.implementClass, args);
 	}
 
 	public T newInstance(Object ...args) {
@@ -118,14 +124,15 @@ public class ClassManager<T> {
 	}
 
 	public static Class<?> findClassByGroovyFile(File file) {
-		try {
-			GroovyCodeSource source = new GroovyCodeSource(file);
-			Class<?> classType = EntityFactory.getGroovyClassLoader().parseClass(source, false);
-			return classType;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+		return GroovyScriptSupport.findClassByGroovyFile(file);
+		//try {
+		//	GroovyCodeSource source = new GroovyCodeSource(file);
+		//	Class<?> classType = EntityFactory.getGroovyClassLoader().parseClass(source, false);
+		//	return classType;
+		//} catch (Exception e) {
+		//	e.printStackTrace();
+		//	return null;
+		//}
 	}
 
 	public static Class<?> findClassByFile(File file) {
@@ -185,6 +192,16 @@ public class ClassManager<T> {
 				return findClassByGroovyFile(file);
 			}
 			
+			file = searchFile(testBase + "groovy/", filePath, ".groovy");
+			if (file != null) {
+				return findClassByGroovyFile(file);
+			}
+
+			file = searchFile(testBase, filePath, ".groovy");
+			if (file != null) {
+				return findClassByGroovyFile(file);
+			}
+			
 			file = searchFile(hotswapBase + "classes/", filePath, ".class");
 			if (file != null) {
 				return findClassByClassFile(file);
@@ -195,12 +212,12 @@ public class ClassManager<T> {
 				return findClassByClassFile(file);
 			}
 			
-			file = searchFile(srcBase + "classes/", filePath, ".class");
+			file = searchFile(targetBase + "classes/", filePath, ".class");
 			if (file != null) {
 				return findClassByClassFile(file);
 			}
 			
-			file = searchFile(srcBase, filePath, ".class");
+			file = searchFile(targetBase, filePath, ".class");
 			if (file != null) {
 				return findClassByClassFile(file);
 			}

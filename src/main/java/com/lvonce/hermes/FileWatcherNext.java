@@ -22,7 +22,6 @@ import java.nio.file.WatchService;
 import java.nio.file.FileSystems;
 import static java.nio.file.StandardWatchEventKinds.*;
 import java.util.function.Consumer;
-import java.io.File;
 
 public class FileWatcherNext {
     private static final Logger logger = LoggerFactory.getLogger(FileWatcherNext.class);
@@ -48,7 +47,7 @@ public class FileWatcherNext {
             path = Paths.get(watchDirFile.getCanonicalPath());
             watchService = FileSystems.getDefault().newWatchService();
             path.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-            logger.debug("register dir: {}", path.toString());
+            logger.debug("watch service register:{}", path.toString());
             if (recursive) {
                 File[] childFiles = path.toFile().listFiles();
                 for (File childFile : childFiles) {

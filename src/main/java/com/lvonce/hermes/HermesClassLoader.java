@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.LinkedHashMap;
 import java.lang.reflect.Field;
 import java.util.function.Consumer;
+import com.lvonce.hermes.compilers.Compiler;
 
 public class HermesClassLoader extends ClassLoader {
     private static final Logger logger = LoggerFactory.getLogger(HermesClassLoader.class);
@@ -20,15 +21,6 @@ public class HermesClassLoader extends ClassLoader {
         instance = new HermesClassLoader();
         classCache = new LinkedHashMap<String, HermesClassManager>();
         watcher = FileWatcherNext.create("src", HermesClassLoader::update, true);
-        // watcher = FileWatcherNext.create("src", (File file) -> {
-        //     logger.debug("update handle func: {}", file.getName());
-        //     if (file.getName().endsWith(".java")) {
-        //         byte[] classData = Compiler.compile(file);
-        //         if (classData != null) {
-        //             putClassDefinition(classData);
-        //         }
-        //     }
-        // }, true);
         watcher.watch();
     }
 
@@ -39,9 +31,9 @@ public class HermesClassLoader extends ClassLoader {
     private static void update(File file) {
         logger.debug("update handle func: {}", file.getName());
         if (file.getName().endsWith(".java")) {
-            byte[] classData = Compiler.compile(file);
-            if (classData != null) {
-                putClassDefinition(classData);
+            Class<?>[] classes = Compiler.compileFile(file);
+            for (Class<?> classType : classes) {
+                putClassDefinition(classType.getName(), classType);
             }
         }
     };

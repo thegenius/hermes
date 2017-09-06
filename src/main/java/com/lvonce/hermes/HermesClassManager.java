@@ -104,57 +104,6 @@ public class HermesClassManager {
         return this.implementClass;
     }
 
-    public boolean matchType(Class<?> dstType, Class<?>srcType) {
-        if (dstType.isPrimitive() && srcType.isPrimitive()) {
-            return dstType.isAssignableFrom(srcType);
-        }
-        if ((!dstType.isPrimitive()) && (!srcType.isPrimitive())) {
-            return dstType.isAssignableFrom(srcType);
-        }
-        if (!dstType.isPrimitive()) {
-            Class<?> tmpType = dstType;
-            dstType = srcType;
-            srcType = tmpType;
-        }
-        if (dstType == byte.class) {
-            return srcType == Byte.class;
-        }
-        if (dstType == short.class) {
-            return srcType == Short.class;
-        }
-        if (dstType == int.class) {
-            return srcType == Integer.class;
-        }
-        if (dstType == long.class) {
-            return srcType == Long.class;
-        }
-        if (dstType == float.class) {
-            return srcType == Float.class;
-        }
-        if (dstType == double.class) {
-            return srcType == Double.class;
-        }
-        if (dstType == boolean.class) {
-            return srcType == Boolean.class;
-        }
-        if (dstType == char.class) {
-            return srcType == Character.class;
-        }
-        return false;
-    }
-
-    public boolean matchAssignableTypes(Class<?>[] dstTypes, Class<?>[] srcTypes) {
-        if (dstTypes.length != srcTypes.length) {
-            return false;
-        }
-        for (int i = 0; i < dstTypes.length; ++i) {
-            if (!matchType(dstTypes[i],srcTypes[i])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public Constructor<?> matchConstructor(Object... args) {
         if (this.implementConstructors == null) {
             return null;
@@ -172,7 +121,7 @@ public class HermesClassManager {
         }
         for (Constructor<?> constructor : constructors) {
             Class<?>[] constructorParamTypes = constructor.getParameterTypes();
-            if (matchAssignableTypes(constructorParamTypes, paramTypes)) {
+            if (ReflectUtils.matchAssignableTypes(constructorParamTypes, paramTypes)) {
                 return constructor;
             }
         }
@@ -205,25 +154,6 @@ public class HermesClassManager {
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
             return null;
-        }
-    }
-
-    public static void mergeObject(Object dst, Object src) {
-        Field[] fields = dst.getClass().getDeclaredFields();
-        Class<?> srcClass = src.getClass();
-        for (Field dstField : fields) {
-            try {
-                String name = dstField.getName();
-                Field srcField = srcClass.getDeclaredField(name);
-                boolean srcAccessible = srcField.isAccessible();
-                boolean dstAccessible = dstField.isAccessible();
-                srcField.setAccessible(true);
-                dstField.setAccessible(true);
-                dstField.set(dst, srcField.get(src));
-                srcField.setAccessible(srcAccessible);
-                dstField.setAccessible(dstAccessible);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-            }
         }
     }
 
@@ -261,7 +191,7 @@ public class HermesClassManager {
                 try {
                     Object oldObject = this.getTargetMethod.invoke(proxy);
                     Object newObject = createInstance(entry.getValue());
-                    mergeObject(newObject, oldObject);
+                    ReflectUtils.mergeObject(newObject, oldObject);
                     setTargetMethod.invoke(proxy, newObject);
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();

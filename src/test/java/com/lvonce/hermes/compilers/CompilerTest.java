@@ -1,9 +1,11 @@
-package com.lvonce.hermes;
+package com.lvonce.hermes.compilers;
 
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.BeforeClass;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static org.testng.Assert.*;
 import static com.lvonce.hermes.EntityFactory.*;
 
@@ -13,15 +15,23 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Map;
 
+import com.lvonce.hermes.ReflectUtils;
+import com.lvonce.hermes.RuntimeFileUtils;
+import com.lvonce.hermes.compilers.CompilerOfJava;
+
+@Test
 public class CompilerTest {
+
+    public static final Logger logger = LoggerFactory.getLogger(CompilerTest.class);
 
     public String createSourceString() {
         StringBuilder builder = new StringBuilder();
         builder.append("package com.lvonce;");
         builder.append("    public class TestNew {");
         builder.append("        public static void main(String[] args) {");
-        builder.append("            System.out.println(\"Hello new\");" );
+        builder.append("            System.out.println(\"Hello new\");");
         builder.append("        }");
         builder.append("    public int add(int x, int y) {");
         builder.append("        return x + y;");
@@ -29,6 +39,7 @@ public class CompilerTest {
         builder.append("}");
         return builder.toString();
     }
+
     public File createSourceFile() {
         try {
             File file = new File("TestNew.java");
@@ -47,40 +58,23 @@ public class CompilerTest {
     }
 
     @Test
-    public void test() {
+    public void testCompileFile() {
         try {
             File file = createSourceFile();
-            byte[] classData = Compiler.compile(file);
-            Class<?> classType = new ClassLoader() {
-                public Class<?> defineClass(byte[] bytes) {
-                    return super.defineClass(null, bytes, 0, bytes.length);
-                }
-            }.defineClass(classData);
-            Object obj = classType.newInstance();
-            System.out.println("class name: " + classType.getName());
-            Method method = classType.getDeclaredMethod("add", new Class<?>[]{int.class, int.class});
-            int result = (int)method.invoke(obj, 1, 2);
+            Class<?>[] classTypes = Compiler.compileFile(file);
+            Object obj = ReflectUtils.createInstance(classTypes[0]);
+            int result = (int) ReflectUtils.invoke(obj, "add", 1, 2);
             assertEquals(result, 3);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
     @Test
-    public void test2() {
-        try {
-            byte[] classData = Compiler.compile("com.lvonce.TestNew", createSourceString());
-            Class<?> classType = new ClassLoader() {
-                public Class<?> defineClass(byte[] bytes) {
-                    return super.defineClass(null, bytes, 0, bytes.length);
-                }
-            }.defineClass(classData);
-            Object obj = classType.newInstance();
-            System.out.println("class name: " + classType.getName());
-            Method method = classType.getDeclaredMethod("add", new Class<?>[]{int.class, int.class});
-            int result = (int)method.invoke(obj, 1, 2);
-            assertEquals(result, 3);
-        } catch (Exception e) {
-            e.printStackTrace();
+    public void testChildCompilers() {
+        for (Map.Entry<String, Compiler> entry : Compiler.compilers.entrySet()) {
+            logger.info("{} -> {}", entry.getKey(), entry.getValue());
         }
     }
+
 }

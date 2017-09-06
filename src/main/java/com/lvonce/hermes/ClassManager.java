@@ -26,6 +26,8 @@ import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+
+import com.lvonce.hermes.compilers.CompilerOfGroovy;
 public class ClassManager<T> {
 
 	private static Logger logger = LoggerFactory.getLogger(ClassManager.class);
@@ -124,7 +126,7 @@ public class ClassManager<T> {
 	}
 
 	public static Class<?> findClassByGroovyFile(File file) {
-		return GroovyScriptSupport.findClassByGroovyFile(file);
+		return CompilerOfGroovy.findClassByGroovyFile(file);
 		//try {
 		//	GroovyCodeSource source = new GroovyCodeSource(file);
 		//	Class<?> classType = EntityFactory.getGroovyClassLoader().parseClass(source, false);

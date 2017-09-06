@@ -1,14 +1,18 @@
-package com.lvonce.hermes;
+package com.lvonce.hermes.compilers;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-//import groovy.lang.GroovyCodeSource;
-//import groovy.lang.GroovyClassLoader;
 
-public class GroovyScriptSupport {
+import com.lvonce.hermes.ReflectUtils;
 
+public class CompilerOfGroovy implements Compiler {
+	private static final Logger logger = LoggerFactory.getLogger(CompilerOfGroovy.class);
 	private static final Method groovyParseMethod;
 	private static final Object groovyClassLoader;
 	private static final Class<?> groovyCodeSourceClass;
@@ -23,7 +27,7 @@ public class GroovyScriptSupport {
 			loaderClass = Class.forName("groovy.lang.GroovyClassLoader");
 			method = loaderClass.getDeclaredMethod("parseClass", sourceClass, boolean.class);
 			Constructor<?> constructor = loaderClass.getDeclaredConstructor(ClassLoader.class);
-			loader = constructor.newInstance(GroovyScriptSupport.class.getClassLoader());	
+			loader = constructor.newInstance(CompilerOfGroovy.class.getClassLoader());	
 		} catch (ClassNotFoundException | 
 				NoSuchMethodException |
 				InstantiationException |
@@ -41,16 +45,33 @@ public class GroovyScriptSupport {
 		}
 	}
 
-	public static boolean exists() {
+	@Override
+	public boolean supported() {
 		return groovyParseMethod != null;
+	}
+
+
+	@Override
+	public String getSourceFileSuffix() {
+		return ".groovy";
+	}
+
+	@Override
+	public Class<?>[] compile(Iterable<File> sourceFiles) {
+		ArrayList<Class<?>> classes = new ArrayList<>();
+		for (File file : sourceFiles) {
+			classes.add(findClassByGroovyFile(file));
+		}
+		return classes.toArray(new Class<?>[classes.size()]);
 	}
 
 	public static Class<?> findClassByGroovyFile(File file) {
 		if (groovyParseMethod == null) {
+			logger.warn("groovy compile is not supported, please add groovy dependency to your project!");
 			return null;
 		}
 		try {
-			Object source = ClassManager.createInstance(groovyCodeSourceClass, file);
+			Object source = ReflectUtils.createInstance(groovyCodeSourceClass, file);
 			Class<?> classType = (Class<?>)groovyParseMethod.invoke(groovyClassLoader, source, false);
 			return classType;
 		} catch (Exception e) {

@@ -4,15 +4,15 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.Method;  
 import java.lang.reflect.InvocationHandler;  
 
-public class EntityProxy<T> implements InvocationHandler {
-	private T target;
+public class EntityProxy implements InvocationHandler {
+	private Object target;
 
-	public EntityProxy(T target) {
+	public EntityProxy(Object target) {
 		this.target = target;
 	}	
 
-	public T getProxy() {
-		return (T)Proxy.newProxyInstance(
+	public Object getProxy() {
+		return Proxy.newProxyInstance(
 			Thread.currentThread().getContextClassLoader(),
 			this.target.getClass().getInterfaces(),
 			this);
@@ -27,11 +27,11 @@ public class EntityProxy<T> implements InvocationHandler {
 		return result;
 	}
 
-	public void setTarget(T target) {
+	public void __setReloadTarget__(Object target) {
 		this.target = target;
 	}
 
-	public T getTarget() {
+	public Object __getReloadTarget__() {
 		return this.target;
 	}
 }

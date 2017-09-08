@@ -49,20 +49,15 @@ public class HermesClassLoader extends ClassLoader {
         }
     }
 
-    public static Object create(String className, Object... args) {
+    public static Object create(String className, Object... args) throws ClassNotFoundException {
         // new Throwable().printStackTrace();
         logger.debug("create({}, {})", className, args);
         HermesClassManager manager = classCache.get(className);
         if (manager == null) {
-            try {
-                Class<?> targetClass = instance.loadClass(className);
-                manager = new HermesClassManager();
-                manager.update(targetClass);
-                classCache.put(className, manager);
-            } catch (ClassNotFoundException e) {
-                logger.warn("create({}), but there is no such class, please write it.", className);
-                return null;
-            }
+            Class<?> targetClass = instance.loadClass(className);
+            manager = new HermesClassManager();
+            manager.update(targetClass);
+            classCache.put(className, manager);
         }
         return manager.createInstance(args);
     }

@@ -219,7 +219,7 @@ public class HermesClassManager {
                     Object newObject = createInstance(entry.getValue());
                     ReflectUtils.mergeObject(newObject, oldObject);
                     setTargetMethod.invoke(proxy, newObject);
-                } catch (IllegalAccessException | InvocationTargetException e) {
+                } catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
                 }
             }

@@ -63,7 +63,7 @@ public class ReflectUtils {
         return true;
     }
 
-    public static Constructor<?> matchConstructor(Class<?> classType, Object... args) {
+    public static Constructor<?> matchConstructor(Class<?> classType, Object... args) throws NoSuchMethodException {
         Constructor<?>[] constructors = classType.getDeclaredConstructors();
         try {
             if (args.length == 0) {
@@ -79,13 +79,14 @@ public class ReflectUtils {
                     return constructor;
                 }
             }
-            return null;
-        } catch (NoSuchMethodException | SecurityException e) {
-            return null;
+            throw new NoSuchMethodException(args.toString());
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            throw new NoSuchMethodException(args.toString());
         }
     }
 
-    public static Method matchMethod(Class<?> classType, String methodName, Object... args) {
+    public static Method matchMethod(Class<?> classType, String methodName, Object... args) throws NoSuchMethodException {
         Method[] methods = classType.getDeclaredMethods();
         try {
             if (args.length == 0) { // make the common case faster
@@ -104,9 +105,10 @@ public class ReflectUtils {
                     return method;
                 }
             }
-            return null;
-        } catch (NoSuchMethodException | SecurityException e) {
-            return null;
+            throw new NoSuchMethodException(args.toString());
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            throw new NoSuchMethodException(args.toString());
         }
     }
 
@@ -158,18 +160,9 @@ public class ReflectUtils {
         }
     }
 
-    public static Object invoke(Object target, String methodName, Object... args) {
-        try {
-            Method method = matchMethod(target.getClass(), methodName, args);
-            logger.debug("invoke -> method -> {}", method);
-            if (method != null) {
-                return method.invoke(target, args);
-            } else {
-                return null;
-            }
-        } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public static Object invoke(Object target, String methodName, Object... args)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IllegalArgumentException {
+        Method method = matchMethod(target.getClass(), methodName, args);
+        return method.invoke(target, args);
     }
 }

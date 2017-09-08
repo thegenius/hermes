@@ -56,27 +56,6 @@ public class EntityFactory implements FileWatcherHandler {
 	//	return groovyClassLoader;
 	//}
 	
-	private static void copyFile(File source, File dest) {    
-        FileChannel inputChannel = null;    
-        FileChannel outputChannel = null;    
-    	try {
-			if (!dest.exists()) {
-				dest.createNewFile();
-			}
-    	    inputChannel = new FileInputStream(source).getChannel();
-    	    outputChannel = new FileOutputStream(dest).getChannel();
-    	    outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
-    	} catch (Exception e) { 
-			e.printStackTrace();
-		} finally {
-			try {
-    	    	inputChannel.close();
-    	    	outputChannel.close();
-    		} catch (Exception e) { 
-				e.printStackTrace();
-			}
-    	}
-	}
 
 
 	public static String getSystemClassPath() {
@@ -141,7 +120,7 @@ public class EntityFactory implements FileWatcherHandler {
 				manager = new ClassManager(interfaceType, className);
 				classManagerMap.put(className, manager);
 			}
-			return manager.newInstance(args);
+			return (T)manager.newInstance(args);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

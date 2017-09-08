@@ -17,6 +17,9 @@ import java.util.zip.ZipEntry;
 import java.util.function.Predicate;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.channels.FileChannel;
 
 public class RuntimeFileUtils {
 
@@ -126,4 +129,25 @@ public class RuntimeFileUtils {
         }
     }
 
+	private static void copyFile(File source, File dest) {    
+        FileChannel inputChannel = null;    
+        FileChannel outputChannel = null;    
+    	try {
+			if (!dest.exists()) {
+				dest.createNewFile();
+			}
+    	    inputChannel = new FileInputStream(source).getChannel();
+    	    outputChannel = new FileOutputStream(dest).getChannel();
+    	    outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
+    	} catch (Exception e) { 
+			e.printStackTrace();
+		} finally {
+			try {
+    	    	inputChannel.close();
+    	    	outputChannel.close();
+    		} catch (Exception e) { 
+				e.printStackTrace();
+			}
+    	}
+	}
 }

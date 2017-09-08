@@ -38,13 +38,13 @@ public class ClassManager<T> {
 
 	private final String classFilePath;
 	private final Class<T> interfaceType;
-	private final Map<EntityProxy<T>, Object[]> objectRefs;
+	private final Map<EntityProxy, Object[]> objectRefs;
 	private Class<T> implementClass;
 	
 	public ClassManager(Class<T> interfaceType, String filePath) {
 		this.classFilePath = filePath;
 		this.interfaceType = interfaceType;
-		this.objectRefs = new WeakHashMap<EntityProxy<T>, Object[]>();
+		this.objectRefs = new WeakHashMap<EntityProxy, Object[]>();
 		this.implementClass = (Class<T>)findClass(filePath);
 	}
 	
@@ -56,12 +56,12 @@ public class ClassManager<T> {
 		try {
 			logger.debug( "load " + file.toString());
 			this.implementClass = (Class<T>)findClassByFile(file);
-			Iterator<Map.Entry<EntityProxy<T>, Object[]>> it = this.objectRefs.entrySet().iterator();
+			Iterator<Map.Entry<EntityProxy, Object[]>> it = this.objectRefs.entrySet().iterator();
 			while (it.hasNext()) {
-				Map.Entry<EntityProxy<T>, Object[]> entry = it.next();
-				EntityProxy<T> proxy = entry.getKey();
-				if (proxy.getTarget() != null) {
-					proxy.setTarget(createInstance(entry.getValue())); 
+				Map.Entry<EntityProxy, Object[]> entry = it.next();
+				EntityProxy proxy = entry.getKey();
+				if (proxy.__getReloadTarget__() != null) {
+					proxy.__setReloadTarget__(createInstance(entry.getValue())); 
 				} 				
 			}
 		} catch (Exception e) {
@@ -100,12 +100,12 @@ public class ClassManager<T> {
 		return createInstance(this.implementClass, args);
 	}
 
-	public T newInstance(Object ...args) {
+	public Object newInstance(Object ...args) {
 		T obj = createInstance(args);
 		if (obj == null) {
 			return null;
 		}
-		EntityProxy<T> proxy = new EntityProxy(obj);
+		EntityProxy proxy = new EntityProxy(obj);
 		this.objectRefs.put(proxy, args);
 		return proxy.getProxy();
 	}

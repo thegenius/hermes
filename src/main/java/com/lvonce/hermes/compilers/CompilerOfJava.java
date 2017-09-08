@@ -44,11 +44,13 @@ public class CompilerOfJava implements Compiler {
 
     @Override
     public Iterable<?> getCompilationUnits(Iterable<File> sourceFiles) {
+        logger.debug("getCompilationUnits({})", sourceFiles);
         return fileManager.getJavaFileObjectsFromFiles(sourceFiles);
     }
 
     @Override
     public boolean execute(Iterable<?> compilationList) {
+        logger.debug("execute({})", compilationList);
         try {
             Iterable<? extends JavaFileObject> compilationUnits = (Iterable<? extends JavaFileObject>) compilationList;
             Path outPath = Paths.get(compiledClassDir());

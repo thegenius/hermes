@@ -14,6 +14,7 @@ import org.testng.annotations.*;
 import static org.testng.Assert.*;
 import com.lvonce.hermes.prepares.Proxy;
 import com.lvonce.hermes.prepares.Target;
+import com.lvonce.hermes.prepares.TargetNew;
 
 public class HermesClassManagerTest {
 
@@ -53,6 +54,20 @@ public class HermesClassManagerTest {
     }
 
 
+    @Test
+    public void testConstructor1() {
+        HermesClassManager manager = new HermesClassManager();
+        assertEquals(manager.getProxyClass(), null);
+        manager.update(Target.class);
+        Target target = (Target)manager.createInstance(23);
+        assertNotNull(target);
+        assertEquals(target.add(16, 41), 80);        
+
+        manager.update(TargetNew.class);
+        TargetNew targetNew = (TargetNew)manager.createInstance(2);
+        assertEquals(targetNew.add(1, 5), 10);
+
+    }
 
     @Test
     public void testConstructor() {

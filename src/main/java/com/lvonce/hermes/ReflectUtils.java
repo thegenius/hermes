@@ -3,6 +3,7 @@ package com.lvonce.hermes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.IllegalAccessError;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -144,17 +145,23 @@ public class ReflectUtils {
     }
 
     public static Class<?> getClass(byte[] classData) {
-        Class<?> classType = new ClassLoader() {
-            public Class<?> defineClass(byte[] bytes) {
-                return super.defineClass(null, bytes, 0, bytes.length);
-            }
-        }.defineClass(classData);
-        return classType;
+        try {
+            Class<?> classType = new ClassLoader() {
+                public Class<?> defineClass(byte[] bytes) {
+                    return super.defineClass(null, bytes, 0, bytes.length);
+                }
+            }.defineClass(classData);
+            return classType;
+        } catch (Exception | Error e) {
+            logger.debug("getClass Error -> {}", e.getMessage());
+            return null;
+        }
     }
 
     public static Object invoke(Object target, String methodName, Object... args) {
         try {
-            Method method = matchMethod(target.getClass(), "add", args);
+            Method method = matchMethod(target.getClass(), methodName, args);
+            logger.debug("invoke -> method -> {}", method);
             if (method != null) {
                 return method.invoke(target, args);
             } else {

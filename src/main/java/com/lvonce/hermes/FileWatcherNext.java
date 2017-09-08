@@ -30,6 +30,7 @@ public class FileWatcherNext {
     private final WatchService watchService;
     private final Consumer<File> handleFunc;
     private Map<String, FileWatcherNext> childWatchers;
+    private Thread watcherThread;
 
     public static FileWatcherNext create(String watchDirPath, Consumer<File> handleFunc, boolean recursive) {
         Path path = Paths.get(watchDirPath);
@@ -161,7 +162,7 @@ public class FileWatcherNext {
     }
 
     public void watch() {
-        new Thread(() -> {
+        this.watcherThread = new Thread(() -> {
             try {
                 while (true) {
                     this.poll(true);
@@ -170,6 +171,13 @@ public class FileWatcherNext {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }).start();
+        });
+        this.watcherThread.start();
+    }
+
+    public void stop() {
+        if (this.watcherThread != null) {
+            this.watcherThread.stop();           
+        }
     }
 }

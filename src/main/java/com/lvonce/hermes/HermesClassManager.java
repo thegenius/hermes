@@ -8,7 +8,8 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.WeakHashMap;
-
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.lang.SecurityException;
 import java.lang.NoSuchMethodException;
 
@@ -27,6 +28,7 @@ public class HermesClassManager {
     private final Class<?> proxyClass;
     private Class<?> implementClass;
     private Map<Integer, Constructor<?>[]> implementConstructors;
+    private final ReadWriteLock lock;
 
     public HermesClassManager() {
         this.proxyClass = null;
@@ -35,6 +37,7 @@ public class HermesClassManager {
         this.constructorWithObject = null;
         this.setTargetMethod = null;
         this.getTargetMethod = null;
+        this.lock = new ReentrantReadWriteLock();
     }
 
     public HermesClassManager(Class<?> proxyClass) {
@@ -52,6 +55,7 @@ public class HermesClassManager {
             this.constructorWithObject = null;
             this.setTargetMethod = null;
             this.getTargetMethod = null;
+            this.lock = new ReentrantReadWriteLock();
         } else {
             Constructor<?> constructorWithNoArgs = null;
             Constructor<?> constructorWithObject = null;
@@ -89,6 +93,7 @@ public class HermesClassManager {
             this.constructorWithObject = constructorWithObject;
             this.getTargetMethod = getTargetMethod;
             this.setTargetMethod = setTargetMethod;
+            this.lock = new ReentrantReadWriteLock();
         }
     }
 
@@ -130,31 +135,47 @@ public class HermesClassManager {
 
     public Object createInstance(Object... args) {
         logger.debug("createInstance({})", args);
-        try {
-            if (this.implementClass == null) {
-                logger.warn("try createInstance(), but the implement class is null");
-                return null;
-            }
-            Constructor<?> constructor = this.matchConstructor(args);
-            if (constructor == null) {
-                logger.debug("try createInstance(), but no suitable constructor");
-                return null;
-            }
-            Object target = constructor.newInstance(args);
-            if (this.constructorWithObject != null) {
-                return constructorWithObject.newInstance(target);
-            } else if (this.constructorWithNoArgs != null) {
-                Object proxy = this.constructorWithNoArgs.newInstance();
-                this.setTargetMethod.invoke(proxy, target);
-                return proxy;
-            } else {
-                logger.debug("createInstance({}) return target", args);
-                return target;
-            }
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+        Object target;
+        lock.readLock().lock();
+        if (this.implementClass != null) {
+            logger.debug("implementClass -> {}", this.implementClass);
+            target =  ReflectUtils.createInstance(this.implementClass, args);
+        } else {
+            lock.readLock().unlock();
             return null;
         }
+        lock.readLock().unlock();
+        if (this.proxyClass != null) {
+            logger.debug("proxyClass -> {}", this.proxyClass);
+            return ReflectUtils.createInstance(this.proxyClass, target);
+        }
+        return target;
+
+        // try {
+        //     if (this.implementClass == null) {
+        //         logger.warn("try createInstance(), but the implement class is null");
+        //         return null;
+        //     }
+        //     Constructor<?> constructor = this.matchConstructor(args);
+        //     if (constructor == null) {
+        //         logger.debug("try createInstance(), but no suitable constructor");
+        //         return null;
+        //     }
+        //     Object target = constructor.newInstance(args);
+        //     if (this.constructorWithObject != null) {
+        //         return constructorWithObject.newInstance(target);
+        //     } else if (this.constructorWithNoArgs != null) {
+        //         Object proxy = this.constructorWithNoArgs.newInstance();
+        //         this.setTargetMethod.invoke(proxy, target);
+        //         return proxy;
+        //     } else {
+        //         logger.debug("createInstance({}) return target", args);
+        //         return target;
+        //     }
+        // } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        //     e.printStackTrace();
+        //     return null;
+        // }
     }
 
     public Map<Integer, Constructor<?>[]> collectConstructors(Class<?> classType) {
@@ -176,14 +197,19 @@ public class HermesClassManager {
             Constructor<?>[] array = list.toArray(new Constructor<?>[list.size()]);
             map.put(entry.getKey(), array);
         }
+        logger.debug("collectConstructors({}) -> {}", classType, map);
         return map;
     }
 
     public void update(Class<?> newClass) {
         logger.debug("update({})", newClass.getName());
+        Map<Integer, Constructor<?>[]> newConstructors = collectConstructors(newClass);
+        lock.writeLock().lock();
         this.implementClass = newClass;
-        this.implementConstructors = collectConstructors(newClass);
+        this.implementConstructors = newConstructors;
+        lock.writeLock().unlock();
         if (this.proxyClass != null) {
+            logger.debug("update({}) -> update all references begin ...", newClass.getName());
             Iterator<Map.Entry<Object, Object[]>> it = this.objectRefs.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<Object, Object[]> entry = it.next();
@@ -198,5 +224,6 @@ public class HermesClassManager {
                 }
             }
         }
+        logger.debug("update({}) -> update all references end.", newClass.getName());
     }
 }

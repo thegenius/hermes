@@ -24,7 +24,14 @@ import com.lvonce.hermes.RuntimeFileUtils;
 public interface Compiler {
 
     public static final Logger logger = LoggerFactory.getLogger(Compiler.class);
-    public static final Map<String, Compiler> compilers = collectCompilers();
+    // public static final Map<String, Compiler> compilers = collectCompilers();
+    public static final Map<String, Compiler> compilers = new LinkedHashMap<String, Compiler>() {
+        {
+            put(".java", new CompilerOfJava());
+            put(".kt", new CompilerOfKotlin());
+            put(".scala", new CompilerOfGroovy());
+        }
+    };
 
     default Logger getLogger() {
         return logger;
@@ -47,6 +54,7 @@ public interface Compiler {
     public static Class<?>[] compileFile(File sourceFile) {
         return compileFile(Arrays.asList(sourceFile));
     }
+
     public static Class<?>[] compileFile(Iterable<File> sourceFiles) {
         ArrayList<Class<?>> classes = new ArrayList<>();
         for (File sourceFile : sourceFiles) {
@@ -54,8 +62,8 @@ public interface Compiler {
             int i = fileName.lastIndexOf('.');
             if (i > 0) {
                 String suffix = fileName.substring(i);
-                logger.debug("suffix -> {}", suffix);
                 Compiler compiler = compilers.get(suffix);
+                logger.debug("suffix -> {}, compiler map ->{}, use compiler -> {}", suffix, compilers, compiler);
                 if (compiler != null) {
                     classes.addAll(Arrays.asList(compiler.compile(sourceFile)));
                 }
@@ -65,12 +73,14 @@ public interface Compiler {
     }
 
     public static Map<String, Compiler> collectCompilers() {
+        logger.debug("collectCompilers()");
         Class<?>[] compilerClasses = RuntimeFileUtils.collectChildrenClasses(Compiler.class);
         LinkedHashMap<String, Compiler> compilersMap = new LinkedHashMap<>();
         for (Class<?> compilerClass : compilerClasses) {
             Compiler compiler = (Compiler) ReflectUtils.createInstance(compilerClass);
             compilersMap.put(compiler.getSourceFileSuffix(), compiler);
         }
+        logger.debug("collectCompilers() -> {}", compilersMap);
         return compilersMap;
     }
 
@@ -88,16 +98,19 @@ public interface Compiler {
      * One source file may be compiled to more than one class
      */
     default Class<?>[] compile(File sourceFile) {
+        logger.debug("compile({})", sourceFile);
         return compile(Arrays.asList(sourceFile));
     }
 
     default Class<?>[] compile(Iterable<File> sourceFiles) {
+        logger.debug("compile({})", sourceFiles);
         clearClassDir();
         if (getCompilerCommand() != null) {
             try {
-                String cmd = String.format("%s %s -classpath %s -d %s", getCompilerCommand(),
+                String cmd = String.format("%s %s -classpath \"%s\" -d \"%s\"", getCompilerCommand(),
                         getFileNameList(sourceFiles), OSValidator.getSystemClassPath("target/classes"),
                         compiledClassDir());
+                logger.debug("compile with cmd: {}", cmd);
                 int retValue = CommandLine.exec(cmd);
                 if (retValue == 0) {
                     return getCompiledClasses();
@@ -128,18 +141,24 @@ public interface Compiler {
     }
 
     default String getFileNameList(Iterable<File> fileList) {
-        StringBuilder builder = new StringBuilder();
-        for (File file : fileList) {
-            builder.append(" ");
-            builder.append(file.getName());
-            builder.append(" ");
+        try {
+            StringBuilder builder = new StringBuilder();
+            for (File file : fileList) {
+                builder.append(" ");
+                builder.append(file.getCanonicalPath());
+                builder.append(" ");
+            }
+            return builder.toString();
+        } catch (IOException e) {
+            logger.debug("getFileNameList({}) -> Error -> {}", fileList, e.getMessage());
+            return "";
         }
-        return builder.toString();
     }
 
     default Class<?>[] getCompiledClasses() {
         try {
             File[] classFiles = findClassFiles();
+            logger.debug("getCompiledClasses -> file list -> {}", classFiles);
             Class<?>[] classTypes = new Class<?>[classFiles.length];
             for (int i = 0; i < classFiles.length; ++i) {
                 File classFile = classFiles[i];
@@ -156,6 +175,7 @@ public interface Compiler {
     default byte[][] getCompiledClassesBytes() {
         try {
             File[] classFiles = findClassFiles();
+            logger.debug("getCompiledClassesBytes -> file list -> {}", classFiles);
             byte[][] classBytes = new byte[classFiles.length][];
             for (int i = 0; i < classFiles.length; ++i) {
                 File classFile = classFiles[i];

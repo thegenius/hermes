@@ -19,20 +19,12 @@ example/
 ├── pom.xml
 ├── src
 │   ├── main
-│   │   ├── groovy
-│   │   │   └── com
-│   │   │       └── lvonce
-│   │   │           └── GroovyFoo.groovy
 │   │   ├── java
 │   │   │   └── com
 │   │   │       └── lvonce
 │   │   │           ├── App.java
 │   │   │           ├── IFoo.java
-│   │   │           └── JavaFoo.java
-│   │   └── kotlin
-│   │       └── com
-│   │           └── lvonce
-│   │               └── KotlinFoo.kt
+│   │               └── JavaFoo.java
 │   └── test
 │       └── java
 │           └── com
@@ -45,21 +37,17 @@ The main class create objects that implement by java/kotlin/groovy.
 ```java
 package com.lvonce;
 
-import static com.lvonce.hermes.EntityFactory.*;
+import static com.lvonce.hermes.Hermes.*;
 
 public class App {
     public static void main(String[] args) throws Exception {
-		IFoo foo1 = create(IFoo.class, "com.lvonce.JavaFoo");
-		IFoo foo2 = create(IFoo.class, "com.lvonce.KotlinFoo");
-		IFoo foo3 = create(IFoo.class, "com.lvonce.GroovyFoo");
 		Runnable func = new Runnable() {
 			public void run() {
 				while (true) {
-					System.out.println(foo1.hello("msg"));
-					System.out.println(foo2.hello("msg"));
-					System.out.println(foo3.hello("msg"));
 					try {
 						Thread.sleep(1000);
+		                Object foo1 = create("com.lvonce.JavaFoo");
+					    System.out.println(invoke(foo1, "hello", "msg"));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

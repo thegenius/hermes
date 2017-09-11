@@ -41,20 +41,20 @@ import static com.lvonce.hermes.Hermes.*;
 
 public class App {
     public static void main(String[] args) throws Exception {
-		Runnable func = new Runnable() {
-			public void run() {
-				while (true) {
-					try {
-						Thread.sleep(1000);
-		                Object foo1 = create("com.lvonce.JavaFoo");
-					    System.out.println(invoke(foo1, "hello", "msg"));
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}	
-		};
-		new Thread(func).start();
+        Runnable func = new Runnable() {
+            public void run() {
+                while (true) {
+                    try {
+                        Thread.sleep(1000);
+                        Object foo1 = create("com.lvonce.JavaFoo");
+                        System.out.println(invoke(foo1, "hello", "msg"));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }	
+        };
+        new Thread(func).start();
     }
 }
 
@@ -76,8 +76,14 @@ Now you can use maven to integrate hermes with your own project:
 <dependency>
 	<groupId>com.lvonce</groupId>
 	<artifactId>hermes</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.4</version>
 </dependency>
+```
+
+## API
+```
+    public static Object create(String className, Object... args)
+    public static Object invoke(Object target, String methodName, Object... args)
 ```
 
 ## DESIGN

@@ -41,20 +41,15 @@ import static com.lvonce.hermes.Hermes.*;
 
 public class App {
     public static void main(String[] args) throws Exception {
-        Runnable func = new Runnable() {
-            public void run() {
-                while (true) {
-                    try {
-                        Thread.sleep(1000);
-                        Object foo1 = create("com.lvonce.JavaFoo");
-                        System.out.println(invoke(foo1, "hello", "msg"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }	
-        };
-        new Thread(func).start();
+        while (true) {
+            try {
+                Thread.sleep(1000);
+                Object foo1 = create("com.lvonce.JavaFoo");
+                System.out.println(invoke(foo1, "hello", "msg"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }	
     }
 }
 
@@ -66,7 +61,7 @@ cd example
 mvn clean pacakge
 java -jar target/example-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
-And now you can use your favorite editor to modify JavaFoo.java KotlinFoo.kt and GroovyFoo.groovy.
+And now you can use your favorite editor to modify JavaFoo.java.
 Then you will see the hotswap magic.
 
 ## QUICK START
